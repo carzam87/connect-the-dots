@@ -1,0 +1,464 @@
+<title>Taller de Puntos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: mesa de trabajo de dos columnas, controles a la izquierda y la hoja de papel a la derecha */
+:root{
+  --bg:#eef1f6; --panel:#ffffff; --fg:#1b2333; --muted:#5b6578; --line:#d5dbe6;
+  --accent:#2457c5; --accent-ink:#ffffff; --sun:#ffd23f; --danger:#b3261e;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141922; --panel:#1d2430; --fg:#e8ecf3; --muted:#9aa5b8; --line:#2f3a4b;
+  --accent:#7ea3ff; --accent-ink:#0d1320; --sun:#ffd23f; --danger:#ff8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141922; --panel:#1d2430; --fg:#e8ecf3; --muted:#9aa5b8; --line:#2f3a4b;
+  --accent:#7ea3ff; --accent-ink:#0d1320; --sun:#ffd23f; --danger:#ff8a80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:.2px;text-wrap:balance}
+header h1 .dot{display:inline-block;width:.32em;height:.32em;border-radius:50%;background:var(--sun);margin-left:.12em;vertical-align:.1em;box-shadow:0 0 0 2px var(--fg)}
+header p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:18px}
+.group{display:flex;flex-direction:column;gap:8px}
+.group h2{font-family:var(--display);font-weight:500;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.drop strong{color:var(--fg)}
+.drop input{display:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.btn{font:inherit;font-weight:700;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+label.field{display:flex;flex-direction:column;gap:4px;font-size:14px}
+label.check{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.lv{display:flex;justify-content:space-between;font-size:14px}
+.lv b{font-variant-numeric:tabular-nums;font-family:var(--display);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=checkbox]{accent-color:var(--accent);width:17px;height:17px}
+input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%}
+.status{font-size:13px;color:var(--muted);min-height:1.4em}
+.status.err{color:var(--danger)}
+.stage{display:flex;flex-direction:column;gap:10px;min-width:0}
+.stagebar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.paper{background:#fff;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 10px 30px rgba(20,30,60,.14);padding:0;width:100%;max-width:720px;margin:0 auto}
+.paper canvas{display:block;width:100%;height:auto;border-radius:6px}
+.hint{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Taller de Puntos<span class="dot"></span></h1>
+    <p>Sube un dibujo y conviértelo en una hoja de "conecta los puntos" para imprimir. Funciona mejor con siluetas o dibujos de línea gruesa sobre fondo blanco.</p>
+  </header>
+
+  <div class="grid">
+    <aside class="panel">
+      <div class="group">
+        <h2>Dibujo</h2>
+        <label class="drop" id="drop" tabindex="0">
+          <input type="file" id="file" accept="image/*">
+          <strong>Elige una imagen</strong><br>o arrástrala aquí, o pégala con Ctrl/Cmd+V
+        </label>
+        <div class="row" id="samples">
+          <span class="hint">Ejemplos:</span>
+          <button data-s="fish">Pez</button>
+          <button data-s="star">Estrella</button>
+          <button data-s="house">Casa</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Dificultad</h2>
+        <div class="row" id="presets">
+          <button data-n="20">Fácil</button>
+          <button data-n="40">Medio</button>
+          <button data-n="80">Difícil</button>
+        </div>
+        <div class="lv"><span>Cantidad de puntos</span><b id="nVal">40</b></div>
+        <input type="range" id="n" min="10" max="120" value="40">
+      </div>
+
+      <div class="group">
+        <h2>Detección</h2>
+        <div class="lv"><span>Umbral de tinta</span><b id="thrVal">auto</b></div>
+        <input type="range" id="thr" min="20" max="235" value="128">
+        <label class="check"><input type="checkbox" id="autoThr" checked> Umbral automático</label>
+        <label class="check"><input type="checkbox" id="details" checked> Conservar detalles interiores (ojos, boca)</label>
+      </div>
+
+      <div class="group">
+        <h2>Hoja</h2>
+        <label class="check"><input type="checkbox" id="showName" checked> Casillas de nombre y fecha</label>
+        <label class="check"><input type="checkbox" id="showTitle" checked> Título</label>
+        <label class="field" id="titleField">Texto del título<input type="text" id="title" value="Conecta los puntos"></label>
+        <label class="check"><input type="checkbox" id="showInstr" checked> Instrucción ("Une los puntos del 1 al…")</label>
+        <label class="field">Papel
+          <select id="paper"><option value="letter">Carta (8.5 × 11 in)</option><option value="a4">A4 (210 × 297 mm)</option></select>
+        </label>
+        <div class="lv"><span>Tamaño de los números</span><b id="fsVal">16</b></div>
+        <input type="range" id="fs" min="10" max="24" value="16">
+        <label class="check"><input type="checkbox" id="ref" checked> Mostrar dibujo de referencia</label>
+        <label class="check"><input type="checkbox" id="sol"> Ver solución (solo en pantalla)</label>
+      </div>
+
+      <div class="status" id="status" role="status"></div>
+    </aside>
+
+    <section class="stage">
+      <div class="stagebar">
+        <span class="hint" id="meta">Vista previa a escala</span>
+        <button class="primary" id="dl" hidden>Descargar PNG (300 dpi)</button>
+      </div>
+      <div class="paper"><canvas id="page" aria-label="Vista previa de la hoja"></canvas></div>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const PAPER = { letter:{w:8.5,h:11}, a4:{w:8.27,h:11.69} };
+const S = { img:null, name:"dibujo", an:null, pts:null, n:40, autoThr:true, thr:128,
+  details:true, title:"Conecta los puntos", paper:"letter", fs:16, ref:true, sol:false,
+  showName:true, showTitle:true, showInstr:true };
+
+/* ---------- Carga de imagen ---------- */
+function setImage(img, name){ S.img = img; S.name = name || "dibujo"; analyze(); }
+function loadFile(file){
+  if(!file || !file.type.startsWith("image/")){ status("Ese archivo no es una imagen. Prueba con PNG o JPG.", true); return; }
+  const url = URL.createObjectURL(file); const im = new Image();
+  im.onload = () => setImage(im, file.name.replace(/\.[^.]+$/,""));
+  im.onerror = () => status("No se pudo abrir la imagen.", true);
+  im.src = url;
+}
+
+/* ---------- Análisis: imagen -> máscara -> contorno ---------- */
+function analyze(){
+  const img = S.img; if(!img) return;
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const sc = Math.min(1, 560/Math.max(iw,ih)), pad = 12;
+  const w = Math.round(iw*sc)+pad*2, h = Math.round(ih*sc)+pad*2;
+  const c = document.createElement("canvas"); c.width=w; c.height=h;
+  const x = c.getContext("2d",{willReadFrequently:true});
+  x.fillStyle="#fff"; x.fillRect(0,0,w,h); x.drawImage(img,pad,pad,w-pad*2,h-pad*2);
+  const d = x.getImageData(0,0,w,h).data, g = new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++) g[i] = (d[i*4]*.299 + d[i*4+1]*.587 + d[i*4+2]*.114)|0;
+
+  const t = S.autoThr ? otsu(g) : S.thr;
+  if(S.autoThr){ S.thr=t; $("thr").value=t; }
+  $("thrVal").textContent = S.autoThr ? "auto ("+t+")" : t;
+  let ink = new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++) ink[i] = g[i] < t ? 1 : 0;
+  // Si el borde de la imagen es mayormente "tinta", el fondo es oscuro: invertir
+  let bInk=0,bTot=0;
+  for(let X=pad;X<w-pad;X++){ bInk+=ink[pad*w+X]+ink[(h-pad-1)*w+X]; bTot+=2; }
+  if(bInk/bTot > .5) for(let i=0;i<w*h;i++) ink[i]^=1;
+
+  const closed = erode(dilate(ink,w,h,2),w,h,2);
+  const filled = fillHoles(closed,w,h);
+  const comp = largest(filled,w,h);
+  if(!comp.area || comp.area < 150){ S.an=null; S.pts=null; status("No encontré una figura clara. Sube un dibujo con fondo blanco y contorno cerrado, o ajusta el umbral.", true); render(); return; }
+  const shape = comp.mask;
+  const raw = trace(shape,w,h);
+  if(raw.length < 20){ S.an=null; S.pts=null; status("La figura es demasiado pequeña o abierta. Prueba con un dibujo más grande.", true); render(); return; }
+  const contour = smooth(resample(raw,420),2);
+
+  // Detalles interiores: tinta original que queda dentro de la silueta (solo en dibujos de línea)
+  let inkIn=0; for(let i=0;i<w*h;i++) if(shape[i]&&ink[i]) inkIn++;
+  const isLine = inkIn/comp.area < .6;
+  let detail=null;
+  if(isLine){
+    // Grosor promedio del trazo: así se recorta todo el contorno exterior y solo quedan los detalles de adentro
+    const thick = Math.min(20, Math.max(2, inkIn/raw.length));
+    const inner = erode(shape,w,h,Math.ceil(thick)+4);
+    detail = document.createElement("canvas"); detail.width=w; detail.height=h;
+    const dx = detail.getContext("2d"), id = dx.createImageData(w,h);
+    let cnt=0; const dm=new Uint8Array(w*h); for(let i=0;i<w*h;i++) dm[i]=inner[i]&&ink[i]?1:0;
+    // Quitar restos pequeños (trozos recortados de líneas pegadas al contorno)
+    const seen=new Uint8Array(w*h), minA=Math.max(60,comp.area*.0025);
+    for(let s=0;s<w*h;s++){ if(!dm[s]||seen[s]) continue; const st=[s], part=[]; seen[s]=1;
+      while(st.length){ const i=st.pop(); part.push(i); const x=i%w,y=(i/w)|0;
+        for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx,yy=y+dy; if(xx<0||yy<0||xx>=w||yy>=h) continue; const j=yy*w+xx; if(dm[j]&&!seen[j]){seen[j]=1;st.push(j);} } }
+      if(part.length<minA) for(const i of part) dm[i]=0; }
+    for(let i=0;i<w*h;i++) if(dm[i]){ id.data[i*4]=29; id.data[i*4+1]=29; id.data[i*4+2]=31; id.data[i*4+3]=255; cnt++; }
+    dx.putImageData(id,0,0); if(cnt<20) detail=null;
+  }
+  S.an = { w, h, shape, contour, detail, isLine };
+  makeDots();
+}
+
+function otsu(g){
+  const hist=new Array(256).fill(0); for(const v of g) hist[v]++;
+  const tot=g.length; let sum=0; for(let i=0;i<256;i++) sum+=i*hist[i];
+  let sB=0,wB=0,best=0,t=128;
+  for(let i=0;i<256;i++){ wB+=hist[i]; if(!wB) continue; const wF=tot-wB; if(!wF) break;
+    sB+=i*hist[i]; const mB=sB/wB, mF=(sum-sB)/wF, v=wB*wF*(mB-mF)*(mB-mF);
+    if(v>best){best=v;t=i;} }
+  return Math.min(235,Math.max(20,t+1));
+}
+function dilate(m,w,h,r){
+  const t=new Uint8Array(w*h), o=new Uint8Array(w*h);
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ let v=0; for(let k=-r;k<=r&&!v;k++){const xx=x+k; if(xx>=0&&xx<w&&m[y*w+xx]) v=1;} t[y*w+x]=v; }
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ let v=0; for(let k=-r;k<=r&&!v;k++){const yy=y+k; if(yy>=0&&yy<h&&t[yy*w+x]) v=1;} o[y*w+x]=v; }
+  return o;
+}
+function erode(m,w,h,r){
+  const inv=new Uint8Array(w*h); for(let i=0;i<w*h;i++) inv[i]=m[i]?0:1;
+  const d=dilate(inv,w,h,r); for(let i=0;i<w*h;i++) d[i]=d[i]?0:1; return d;
+}
+function fillHoles(m,w,h){
+  const out=new Uint8Array(w*h), st=[];
+  const push=i=>{ if(!m[i]&&!out[i]){out[i]=1; st.push(i);} };
+  for(let x=0;x<w;x++){push(x);push((h-1)*w+x);} for(let y=0;y<h;y++){push(y*w);push(y*w+w-1);}
+  while(st.length){ const i=st.pop(), x=i%w, y=(i/w)|0;
+    if(x>0)push(i-1); if(x<w-1)push(i+1); if(y>0)push(i-w); if(y<h-1)push(i+w); }
+  const f=new Uint8Array(w*h); for(let i=0;i<w*h;i++) f[i]=out[i]?0:1; return f;
+}
+function largest(m,w,h){
+  const lab=new Int32Array(w*h); let best=0,bestL=0,L=0;
+  for(let s=0;s<w*h;s++){ if(!m[s]||lab[s]) continue; L++; let a=0; const st=[s]; lab[s]=L;
+    while(st.length){ const i=st.pop(); a++; const x=i%w,y=(i/w)|0;
+      for(const j of [x>0?i-1:-1, x<w-1?i+1:-1, y>0?i-w:-1, y<h-1?i+w:-1]) if(j>=0&&m[j]&&!lab[j]){lab[j]=L;st.push(j);} }
+    if(a>best){best=a;bestL=L;} }
+  const mask=new Uint8Array(w*h); for(let i=0;i<w*h;i++) mask[i]=lab[i]===bestL&&bestL?1:0;
+  return {mask,area:best};
+}
+/* Moore-neighbor tracing del contorno exterior, sentido horario */
+function trace(m,w,h){
+  const D=[[-1,0],[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1]];
+  const at=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&m[y*w+x];
+  let s=-1; for(let i=0;i<w*h;i++) if(m[i]){s=i;break;} if(s<0) return [];
+  const sx=s%w, sy=(s/w)|0; let cx=sx, cy=sy, b=0; const out=[{x:sx,y:sy}];
+  for(let guard=0;guard<w*h*2;guard++){
+    let found=false;
+    for(let k=1;k<=8;k++){ const d=(b+k)%8, nx=cx+D[d][0], ny=cy+D[d][1];
+      if(at(nx,ny)){ const p=D[(d+7)%8], px=cx+p[0], py=cy+p[1];
+        const ddx=px-nx, ddy=py-ny; b=D.findIndex(q=>q[0]===ddx&&q[1]===ddy); if(b<0) b=0;
+        cx=nx; cy=ny; found=true; break; } }
+    if(!found) break;
+    if(cx===sx&&cy===sy) break;
+    out.push({x:cx,y:cy});
+  }
+  return out;
+}
+function resample(p,M){
+  const n=p.length, cum=[0];
+  for(let i=1;i<=n;i++){ const a=p[i-1], b=p[i%n]; cum.push(cum[i-1]+Math.hypot(b.x-a.x,b.y-a.y)); }
+  const L=cum[n], out=[]; let j=0;
+  for(let k=0;k<M;k++){ const t=k*L/M; while(cum[j+1]<t) j++;
+    const a=p[j], b=p[(j+1)%n], f=(t-cum[j])/((cum[j+1]-cum[j])||1);
+    out.push({x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f}); }
+  return out;
+}
+function smooth(p,passes){
+  let a=p; for(let s=0;s<passes;s++){ const n=a.length;
+    a=a.map((_,i)=>{ let x=0,y=0; for(let k=-2;k<=2;k++){const q=a[(i+k+n)%n]; x+=q.x; y+=q.y;} return {x:x/5,y:y/5}; }); }
+  return a;
+}
+
+/* ---------- Puntos: esquinas obligatorias + reparto uniforme por longitud entre esquinas ---------- */
+function makeDots(){
+  if(!S.an){ render(); return; }
+  const P=S.an.contour, M=P.length, N=Math.min(S.n,Math.floor(M/3));
+  const cum=[0]; for(let i=1;i<=M;i++){const a=P[i-1],b=P[i%M]; cum.push(cum[i-1]+Math.hypot(b.x-a.x,b.y-a.y));}
+  const L=cum[M], gap=L/N;
+  const at=s=>{ s=((s%L)+L)%L; let lo=0,hi=M; while(hi-lo>1){const mid=(lo+hi)>>1; if(cum[mid]<=s) lo=mid; else hi=mid;}
+    const a=P[lo], b=P[(lo+1)%M], f=(s-cum[lo])/((cum[lo+1]-cum[lo])||1); return {x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f}; };
+  // Ángulo de giro en cada punto del contorno
+  const k=7, ang=P.map((p,i)=>{ const a=P[(i-k+M)%M], b=P[(i+k)%M];
+    const v1x=p.x-a.x,v1y=p.y-a.y,v2x=b.x-p.x,v2y=b.y-p.y; return Math.abs(Math.atan2(v1x*v2y-v1y*v2x, v1x*v2x+v1y*v2y)); });
+  let cand=[]; for(let i=0;i<M;i++){ if(ang[i]<.6) continue; let mx=true;
+    for(let j=-k;j<=k&&mx;j++){ if(!j) continue; const v=ang[(i+j+M)%M]; if(v>ang[i]||(v===ang[i]&&j<0)) mx=false; } if(mx) cand.push(i); }
+  cand.sort((a,b)=>ang[b]-ang[a]);
+  const corners=[];
+  for(const i of cand){ if(corners.length>=Math.floor(N*.45)) break;
+    if(corners.every(j=>{const d=Math.abs(cum[i]-cum[j]); return Math.min(d,L-d)>=gap*.6;})) corners.push(i); }
+  if(!corners.length) corners.push(0);
+  corners.sort((a,b)=>a-b);
+  // Repartir los puntos restantes entre los tramos según su longitud (resto mayor)
+  const C=corners.length, R=N-C, segs=corners.map((c,j)=>{ const s=cum[c], e=j+1<C?cum[corners[j+1]]:cum[corners[0]]+L; return {s,l:e-s}; });
+  const raw=segs.map(sg=>R*sg.l/L); const alloc=raw.map(Math.floor);
+  let left=R-alloc.reduce((a,b)=>a+b,0);
+  raw.map((v,i)=>[v-Math.floor(v),i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(([,i])=>alloc[i]++);
+  let pts=[];
+  segs.forEach((sg,j)=>{ pts.push(at(sg.s)); for(let q=1;q<=alloc[j];q++) pts.push(at(sg.s+sg.l*q/(alloc[j]+1))); });
+  // Sentido horario en pantalla (área con signo positiva con y hacia abajo)
+  let A=0; for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length]; A+=a.x*b.y-b.x*a.y;}
+  if(A<0) pts.reverse();
+  // El punto 1 arriba (el más alto; en empate, el más centrado)
+  let top=0; const midx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
+  pts.forEach((p,i)=>{ const q=pts[top]; if(p.y<q.y-1.5 || (Math.abs(p.y-q.y)<=1.5 && Math.abs(p.x-midx)<Math.abs(q.x-midx))) top=i; });
+  S.pts=pts.slice(top).concat(pts.slice(0,top));
+  status(S.pts.length+" puntos generados"+(S.an.isLine?" · dibujo de línea detectado":" · silueta rellena detectada")+".");
+  render();
+}
+
+/* ---------- Composición de la hoja (unidades en pulgadas) ---------- */
+const meas=document.createElement("canvas").getContext("2d");
+/* Encabezado opcional: cada parte ocupa espacio solo si está activada */
+function header(){
+  const m=.6, thumb=!!(S.ref&&S.img), tb=1.3; let y=.45;
+  const H={m,thumb,tb};
+  if(S.showName){ H.nameY=y; y+=.65; }
+  const thumbY=y;
+  if(S.showTitle&&S.title){ H.titleY=y+.5; y+=.62; }
+  if(S.showInstr){ H.instrY=y+.28; y+=.42; }
+  if(thumb){ H.thumbY=thumbY; y=Math.max(y,thumbY+tb); }
+  H.bottom = y>.45 ? y+.2 : .6;
+  return H;
+}
+function layout(){
+  const P=PAPER[S.paper], Hd=header(), m=Hd.m, thumb=Hd.thumb;
+  const top=Hd.bottom, area={x:m,y:top,w:P.w-2*m,h:P.h-.6-top};
+  if(!S.pts) return {P,m,thumb,area,dots:[],Hd};
+  const pts=S.pts, fs=S.fs/100, dotR=.038, pad=.35;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for(const p of pts){x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);}
+  const bw=x1-x0||1, bh=y1-y0||1, k=Math.min((area.w-2*pad)/bw,(area.h-2*pad)/bh);
+  const ox=area.x+(area.w-bw*k)/2-x0*k, oy=area.y+(area.h-bh*k)/2-y0*k;
+  const T=p=>({x:ox+p.x*k, y:oy+p.y*k});
+  const sh=S.an.shape, W=S.an.w, H=S.an.h;
+  const inside=(x,y)=>{const mx=Math.round((x-ox)/k), my=Math.round((y-oy)/k); return mx>=0&&my>=0&&mx<W&&my<H&&sh[my*W+mx];};
+  const dp=pts.map(T), n=dp.length;
+  meas.font=`500 100px Fredoka, "Trebuchet MS", sans-serif`;
+  const placed=[];
+  const segHit=(bx)=>{ let c=0; for(let i=0;i<n;i++){const a=dp[i],b=dp[(i+1)%n];
+    for(let s=0;s<=6;s++){const x=a.x+(b.x-a.x)*s/6,y=a.y+(b.y-a.y)*s/6; if(x>bx.x0&&x<bx.x1&&y>bx.y0&&y<bx.y1){c++;break;}}} return c; };
+  const dots=dp.map((p,i)=>{
+    const a=dp[(i-1+n)%n], b=dp[(i+1)%n]; let tx=b.x-a.x, ty=b.y-a.y; const tl=Math.hypot(tx,ty)||1; tx/=tl; ty/=tl;
+    let nx=ty, ny=-tx; if(inside(p.x+nx*.05,p.y+ny*.05)){nx=-nx;ny=-ny;}
+    const label=String(i+1), tw=meas.measureText(label).width/100*fs, th=fs*.78;
+    const base=Math.atan2(ny,nx); let best=null;
+    [0,25,-25,50,-50,80,-80,120,-120,180].forEach((deg,j)=>{
+      const ang=base+deg*Math.PI/180, ux=Math.cos(ang), uy=Math.sin(ang);
+      const dist=dotR+.035+Math.abs(ux)*tw/2+Math.abs(uy)*th/2;
+      const cx=p.x+ux*dist, cy=p.y+uy*dist, bx={x0:cx-tw/2-.012,x1:cx+tw/2+.012,y0:cy-th/2-.012,y1:cy+th/2+.012};
+      let sc=j*.15;
+      for(const q of placed){ const ix=Math.max(0,Math.min(bx.x1,q.x1)-Math.max(bx.x0,q.x0)), iy=Math.max(0,Math.min(bx.y1,q.y1)-Math.max(bx.y0,q.y0)); sc+=ix*iy*4000; }
+      for(const q of dp){ if(q.x>bx.x0-dotR&&q.x<bx.x1+dotR&&q.y>bx.y0-dotR&&q.y<bx.y1+dotR) sc+=8; }
+      sc+=segHit(bx)*3;
+      if(inside(cx,cy)) sc+=1.2;
+      if(bx.x0<area.x-.2||bx.x1>area.x+area.w+.2||bx.y0<area.y-.2||bx.y1>area.y+area.h+.2) sc+=20;
+      if(!best||sc<best.sc) best={sc,cx,cy,bx};
+    });
+    placed.push(best.bx);
+    return {x:p.x,y:p.y,label,lx:best.cx,ly:best.cy};
+  });
+  return {P,m,thumb,area,dots,k,ox,oy,fs,dotR,Hd};
+}
+
+function renderPage(ctx,u,showSol){
+  const L=layout(), {P,m}=L, W=P.w*u, H=P.h*u, ink="#1d1d1f";
+  ctx.save(); ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=ink; ctx.fillStyle=ink; ctx.lineWidth=.018*u; ctx.lineJoin="round"; ctx.lineCap="round";
+  // Encabezado: Nombre y Fecha
+  const box=(x,y,w,h,lab)=>{ ctx.beginPath(); ctx.roundRect(x*u,y*u,w*u,h*u,.09*u); ctx.stroke();
+    ctx.font=`600 ${.19*u}px Fredoka, "Trebuchet MS", sans-serif`; ctx.textBaseline="middle"; ctx.textAlign="left";
+    ctx.fillText(lab,(x+.16)*u,(y+h/2)*u); const lw=ctx.measureText(lab).width;
+    ctx.beginPath(); ctx.moveTo((x+.16)*u+lw+.1*u,(y+h*.68)*u); ctx.lineTo((x+w-.18)*u,(y+h*.68)*u); ctx.lineWidth=.012*u; ctx.stroke(); ctx.lineWidth=.018*u; };
+  const Hd=L.Hd;
+  if(Hd.nameY!==undefined){ box(m,Hd.nameY,4.3,.5,"Nombre:"); box(P.w-m-2.7,Hd.nameY,2.7,.5,"Fecha:"); }
+  // Título e instrucción
+  const tb=Hd.tb, tcx=L.thumb ? (m+(P.w-m-tb-.25))/2 : P.w/2;
+  ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  if(Hd.titleY!==undefined){ ctx.font=`600 ${.44*u}px Fredoka, "Trebuchet MS", sans-serif`; ctx.fillText(S.title,tcx*u,Hd.titleY*u); }
+  const N=L.dots.length;
+  if(Hd.instrY!==undefined){ ctx.font=`400 ${.165*u}px "Atkinson Hyperlegible", system-ui, sans-serif`;
+    ctx.fillText(N?`Une los puntos del 1 al ${N} y luego colorea el dibujo.`:"Sube un dibujo para generar los puntos.",tcx*u,Hd.instrY*u); }
+  // Referencia
+  if(L.thumb){ const x=P.w-m-tb, y=Hd.thumbY;
+    ctx.beginPath(); ctx.rect(x*u,y*u,tb*u,tb*u); ctx.lineWidth=.012*u; ctx.stroke();
+    const iw=S.img.naturalWidth||S.img.width, ih=S.img.naturalHeight||S.img.height, s=Math.min((tb-.16)/iw,(tb-.16)/ih);
+    ctx.drawImage(S.img,(x+(tb-iw*s)/2)*u,(y+(tb-ih*s)/2)*u,iw*s*u,ih*s*u); }
+  if(N){
+    // Detalles interiores
+    if(S.details&&S.an.detail){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+      ctx.drawImage(S.an.detail,L.ox*u,L.oy*u,S.an.w*L.k*u,S.an.h*L.k*u); }
+    if(showSol){ ctx.beginPath(); L.dots.forEach((d,i)=>i?ctx.lineTo(d.x*u,d.y*u):ctx.moveTo(d.x*u,d.y*u)); ctx.closePath();
+      ctx.strokeStyle="rgba(36,87,197,.45)"; ctx.lineWidth=.02*u; ctx.stroke(); ctx.strokeStyle=ink; }
+    ctx.font=`500 ${L.fs*u}px Fredoka, "Trebuchet MS", sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    L.dots.forEach((d,i)=>{ ctx.beginPath(); ctx.arc(d.x*u,d.y*u,L.dotR*u,0,Math.PI*2); ctx.fill();
+      if(i===0){ ctx.beginPath(); ctx.arc(d.x*u,d.y*u,(L.dotR+.03)*u,0,Math.PI*2); ctx.lineWidth=.012*u; ctx.stroke(); }
+      ctx.fillText(d.label,d.lx*u,(d.ly+L.fs*.04)*u); });
+  }
+  ctx.restore();
+}
+
+/* ---------- Vista previa y descarga ---------- */
+const cv=$("page");
+function render(){
+  const P=PAPER[S.paper], u=96, dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(P.w*u*dpr); cv.height=Math.round(P.h*u*dpr);
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+  renderPage(ctx,u,S.sol);
+  $("meta").textContent=(S.paper==="letter"?"Carta":"A4")+" · vista previa a escala";
+}
+function status(msg,err){ const s=$("status"); s.textContent=msg; s.classList.toggle("err",!!err); }
+
+let downloads=null;
+(async()=>{ try{ if(window.claude&&claude.use){ downloads=await claude.use("downloads"); if(downloads) $("dl").hidden=false; } }catch(e){} })();
+$("dl").addEventListener("click",async()=>{
+  if(!downloads) return;
+  const P=PAPER[S.paper], u=300, c=document.createElement("canvas");
+  c.width=Math.round(P.w*u); c.height=Math.round(P.h*u); renderPage(c.getContext("2d"),u,false);
+  const blob=await new Promise(r=>c.toBlob(r,"image/png"));
+  try{ await downloads.save({filename:`puntos-${S.name}.png`,data:blob}); status("Imagen descargada."); }
+  catch(e){ if(e&&e.code==="declined") status("Descarga cancelada."); else status("No se pudo descargar la imagen en esta vista.",true); }
+});
+
+/* ---------- Ejemplos dibujados por código ---------- */
+function sample(kind){
+  const c=document.createElement("canvas"); c.width=560; c.height=420; const x=c.getContext("2d");
+  x.fillStyle="#fff"; x.fillRect(0,0,560,420); x.strokeStyle="#111"; x.fillStyle="#111"; x.lineWidth=8; x.lineJoin="round"; x.lineCap="round";
+  if(kind==="fish"){
+    const cx=300,cy=210,rx=180,ry=118; x.beginPath();
+    for(let t=Math.PI+.5;t<=Math.PI*3-.5;t+=.02){const px=cx+rx*Math.cos(t),py=cy+ry*Math.sin(t); t===Math.PI+.5?x.moveTo(px,py):x.lineTo(px,py);}
+    x.lineTo(60,350); x.lineTo(112,210); x.lineTo(60,70); x.closePath(); x.stroke();
+    x.beginPath(); x.arc(410,170,24,0,Math.PI*2); x.stroke(); x.beginPath(); x.arc(415,173,10,0,Math.PI*2); x.fill();
+    x.beginPath(); x.arc(290,210,70,-.8,.8); x.stroke();
+    x.beginPath(); x.moveTo(440,245); x.quadraticCurveTo(458,258,474,246); x.stroke();
+  } else if(kind==="star"){
+    x.beginPath(); for(let i=0;i<10;i++){const r=i%2?78:190, a=-Math.PI/2+i*Math.PI/5; x.lineTo(280+r*Math.cos(a),225+r*Math.sin(a));} x.closePath(); x.fill();
+  } else {
+    x.beginPath(); x.moveTo(110,400); x.lineTo(110,200); x.lineTo(80,200); x.lineTo(280,40); x.lineTo(370,112); x.lineTo(370,60); x.lineTo(410,60); x.lineTo(410,144); x.lineTo(480,200); x.lineTo(450,200); x.lineTo(450,400); x.closePath(); x.fill();
+  }
+  setImage(c,{fish:"pez",star:"estrella",house:"casa"}[kind]);
+}
+
+/* ---------- Eventos ---------- */
+let tN; const later=(f)=>{clearTimeout(tN); tN=setTimeout(f,120);};
+$("file").addEventListener("change",e=>loadFile(e.target.files[0]));
+const drop=$("drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>loadFile(e.dataTransfer.files[0]));
+drop.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("file").click();}});
+document.addEventListener("paste",e=>{ for(const it of (e.clipboardData||{}).items||[]) if(it.type.startsWith("image/")){loadFile(it.getAsFile());break;} });
+$("samples").addEventListener("click",e=>{const b=e.target.closest("button"); if(b) sample(b.dataset.s);});
+const syncPresets=()=>document.querySelectorAll("#presets button").forEach(b=>b.classList.toggle("on",+b.dataset.n===S.n));
+$("presets").addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; S.n=+b.dataset.n; $("n").value=S.n; $("nVal").textContent=S.n; syncPresets(); makeDots();});
+$("n").addEventListener("input",e=>{S.n=+e.target.value; $("nVal").textContent=S.n; syncPresets(); later(makeDots);});
+$("thr").addEventListener("input",e=>{S.thr=+e.target.value; S.autoThr=false; $("autoThr").checked=false; $("thrVal").textContent=S.thr; later(analyze);});
+$("autoThr").addEventListener("change",e=>{S.autoThr=e.target.checked; analyze();});
+$("details").addEventListener("change",e=>{S.details=e.target.checked; render();});
+$("title").addEventListener("input",e=>{S.title=e.target.value; later(render);});
+$("paper").addEventListener("change",e=>{S.paper=e.target.value; render();});
+$("fs").addEventListener("input",e=>{S.fs=+e.target.value; $("fsVal").textContent=S.fs; later(render);});
+$("ref").addEventListener("change",e=>{S.ref=e.target.checked; render();});
+$("showName").addEventListener("change",e=>{S.showName=e.target.checked; render();});
+$("showTitle").addEventListener("change",e=>{S.showTitle=e.target.checked; $("titleField").hidden=!S.showTitle; render();});
+$("showInstr").addEventListener("change",e=>{S.showInstr=e.target.checked; render();});
+$("sol").addEventListener("change",e=>{S.sol=e.target.checked; render();});
+
+syncPresets();
+Promise.race([Promise.all([document.fonts.load('600 40px Fredoka'),document.fonts.load('500 40px Fredoka'),document.fonts.load('400 16px "Atkinson Hyperlegible"')]),new Promise(r=>setTimeout(r,2500))])
+  .catch(()=>{}).finally(()=>sample("fish"));
+</script>
