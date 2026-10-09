@@ -1,8 +1,8 @@
-<title>Taller de Puntos</title>
+<title>Connect the Dots Maker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-/* Layout: mesa de trabajo de dos columnas, controles a la izquierda y la hoja de papel a la derecha */
+/* Layout: two-column workbench, controls on the left and the paper sheet on the right */
 :root{
   --bg:#eef1f6; --panel:#ffffff; --fg:#1b2333; --muted:#5b6578; --line:#d5dbe6;
   --accent:#2457c5; --accent-ink:#ffffff; --sun:#ffd23f; --danger:#b3261e;
@@ -21,6 +21,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
 header h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:.2px;text-wrap:balance}
 header h1 .dot{display:inline-block;width:.32em;height:.32em;border-radius:50%;background:var(--sun);margin-left:.12em;vertical-align:.1em;box-shadow:0 0 0 2px var(--fg)}
 header p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lang{display:flex;gap:6px}
+.lang button{padding:5px 12px;font-size:13px}
 .grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:860px){.grid{grid-template-columns:1fr}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:18px}
@@ -55,58 +58,59 @@ input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--lin
 
 <div class="wrap">
   <header>
-    <h1>Taller de Puntos<span class="dot"></span></h1>
-    <p>Sube un dibujo y conviértelo en una hoja de "conecta los puntos" para imprimir. Funciona mejor con siluetas o dibujos de línea gruesa sobre fondo blanco.</p>
+    <div class="toprow"><h1><span data-i18n="app">Connect the Dots Maker</span><span class="dot"></span></h1>
+    <div class="lang" role="group" aria-label="Language"><button data-lang="en">English</button><button data-lang="es">Español</button></div></div>
+    <p data-i18n="intro">Upload a drawing and turn it into a printable connect-the-dots worksheet. Works best with silhouettes or bold line drawings on a white background.</p>
   </header>
 
   <div class="grid">
     <aside class="panel">
       <div class="group">
-        <h2>Dibujo</h2>
+        <h2 data-i18n="hDrawing">Drawing</h2>
         <label class="drop" id="drop" tabindex="0">
           <input type="file" id="file" accept="image/*">
-          <strong>Elige una imagen</strong><br>o arrástrala aquí, o pégala con Ctrl/Cmd+V
+          <strong data-i18n="choose">Choose an image</strong><br><span data-i18n="dropHint">or drag it here, or paste it with Ctrl/Cmd+V</span>
         </label>
         <div class="row" id="samples">
-          <span class="hint">Ejemplos:</span>
-          <button data-s="fish">Pez</button>
-          <button data-s="star">Estrella</button>
-          <button data-s="house">Casa</button>
+          <span class="hint" data-i18n="examples">Examples:</span>
+          <button data-s="fish" data-i18n="fish">Fish</button>
+          <button data-s="star" data-i18n="star">Star</button>
+          <button data-s="house" data-i18n="house">House</button>
         </div>
       </div>
 
       <div class="group">
-        <h2>Dificultad</h2>
+        <h2 data-i18n="hDifficulty">Difficulty</h2>
         <div class="row" id="presets">
-          <button data-n="20">Fácil</button>
-          <button data-n="40">Medio</button>
-          <button data-n="80">Difícil</button>
+          <button data-n="20" data-i18n="easy">Easy</button>
+          <button data-n="40" data-i18n="medium">Medium</button>
+          <button data-n="80" data-i18n="hard">Hard</button>
         </div>
-        <div class="lv"><span>Cantidad de puntos</span><b id="nVal">40</b></div>
+        <div class="lv"><span data-i18n="numDots">Number of dots</span><b id="nVal">40</b></div>
         <input type="range" id="n" min="10" max="120" value="40">
       </div>
 
       <div class="group">
-        <h2>Detección</h2>
-        <div class="lv"><span>Umbral de tinta</span><b id="thrVal">auto</b></div>
+        <h2 data-i18n="hDetection">Detection</h2>
+        <div class="lv"><span data-i18n="inkThr">Ink threshold</span><b id="thrVal">auto</b></div>
         <input type="range" id="thr" min="20" max="235" value="128">
-        <label class="check"><input type="checkbox" id="autoThr" checked> Umbral automático</label>
-        <label class="check"><input type="checkbox" id="details" checked> Conservar detalles interiores (ojos, boca)</label>
+        <label class="check"><input type="checkbox" id="autoThr" checked> <span data-i18n="autoThr">Automatic threshold</span></label>
+        <label class="check"><input type="checkbox" id="details" checked> <span data-i18n="details">Keep inner details (eyes, mouth)</span></label>
       </div>
 
       <div class="group">
-        <h2>Hoja</h2>
-        <label class="check"><input type="checkbox" id="showName" checked> Casillas de nombre y fecha</label>
-        <label class="check"><input type="checkbox" id="showTitle" checked> Título</label>
-        <label class="field" id="titleField">Texto del título<input type="text" id="title" value="Conecta los puntos"></label>
-        <label class="check"><input type="checkbox" id="showInstr" checked> Instrucción ("Une los puntos del 1 al…")</label>
-        <label class="field">Papel
-          <select id="paper"><option value="letter">Carta (8.5 × 11 in)</option><option value="a4">A4 (210 × 297 mm)</option></select>
+        <h2 data-i18n="hSheet">Sheet</h2>
+        <label class="check"><input type="checkbox" id="showName" checked> <span data-i18n="showName">Name and date boxes</span></label>
+        <label class="check"><input type="checkbox" id="showTitle" checked> <span data-i18n="showTitle">Title</span></label>
+        <label class="field" id="titleField"><span data-i18n="titleText">Title text</span><input type="text" id="title" value="Connect the Dots"></label>
+        <label class="check"><input type="checkbox" id="showInstr" checked> <span data-i18n="showInstr">Instructions ("Connect the dots from 1 to…")</span></label>
+        <label class="field"><span data-i18n="paper">Paper</span>
+          <select id="paper"><option value="letter" data-i18n="letter">Letter (8.5 × 11 in)</option><option value="a4">A4 (210 × 297 mm)</option></select>
         </label>
-        <div class="lv"><span>Tamaño de los números</span><b id="fsVal">16</b></div>
+        <div class="lv"><span data-i18n="numSize">Number size</span><b id="fsVal">16</b></div>
         <input type="range" id="fs" min="10" max="24" value="16">
-        <label class="check"><input type="checkbox" id="ref" checked> Mostrar dibujo de referencia</label>
-        <label class="check"><input type="checkbox" id="sol"> Ver solución (solo en pantalla)</label>
+        <label class="check"><input type="checkbox" id="ref" checked> <span data-i18n="ref">Show reference drawing</span></label>
+        <label class="check"><input type="checkbox" id="sol"> <span data-i18n="sol">Show solution (screen only)</span></label>
       </div>
 
       <div class="status" id="status" role="status"></div>
@@ -114,10 +118,10 @@ input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--lin
 
     <section class="stage">
       <div class="stagebar">
-        <span class="hint" id="meta">Vista previa a escala</span>
-        <button class="primary" id="dl" hidden>Descargar PNG (300 dpi)</button>
+        <span class="hint" id="meta">Preview to scale</span>
+        <button class="primary" id="dl" hidden data-i18n="download">Download PNG (300 dpi)</button>
       </div>
-      <div class="paper"><canvas id="page" aria-label="Vista previa de la hoja"></canvas></div>
+      <div class="paper"><canvas id="page" aria-label="Sheet preview"></canvas></div>
     </section>
   </div>
 </div>
@@ -126,21 +130,56 @@ input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--lin
 "use strict";
 const $ = id => document.getElementById(id);
 const PAPER = { letter:{w:8.5,h:11}, a4:{w:8.27,h:11.69} };
-const S = { img:null, name:"dibujo", an:null, pts:null, n:40, autoThr:true, thr:128,
-  details:true, title:"Conecta los puntos", paper:"letter", fs:16, ref:true, sol:false,
+/* ---------- Interface strings (English / Spanish) ---------- */
+const I18N = {
+  en:{ app:"Connect the Dots Maker", intro:"Upload a drawing and turn it into a printable connect-the-dots worksheet. Works best with silhouettes or bold line drawings on a white background.",
+    hDrawing:"Drawing", choose:"Choose an image", dropHint:"or drag it here, or paste it with Ctrl/Cmd+V", examples:"Examples:", fish:"Fish", star:"Star", house:"House",
+    hDifficulty:"Difficulty", easy:"Easy", medium:"Medium", hard:"Hard", numDots:"Number of dots",
+    hDetection:"Detection", inkThr:"Ink threshold", autoThr:"Automatic threshold", details:"Keep inner details (eyes, mouth)",
+    hSheet:"Sheet", showName:"Name and date boxes", showTitle:"Title", titleText:"Title text", showInstr:"Instructions (\"Connect the dots from 1 to…\")",
+    paper:"Paper", letter:"Letter (8.5 × 11 in)", numSize:"Number size", ref:"Show reference drawing", sol:"Show solution (screen only)",
+    download:"Download PNG (300 dpi)", preview:"preview to scale", letterShort:"Letter", sheetPreview:"Sheet preview",
+    defTitle:"Connect the Dots", name:"Name:", date:"Date:", instr:"Connect the dots from 1 to {n}, then color the picture.", noDrawing:"Upload a drawing to generate the dots.",
+    notImage:"That file is not an image. Try a PNG or JPG.", openFail:"Could not open the image.",
+    noShape:"No clear shape found. Upload a drawing with a white background and a closed outline, or adjust the threshold.",
+    tooSmall:"The shape is too small or not closed. Try a larger drawing.",
+    generated:"{n} dots generated", lineArt:"line drawing detected", filled:"filled silhouette detected",
+    saved:"Image downloaded.", declined:"Download canceled.", dlFail:"The image could not be downloaded in this view.", file:"dots" },
+  es:{ app:"Conecta los Puntos", intro:"Sube un dibujo y conviértelo en una hoja de conecta los puntos para imprimir. Funciona mejor con siluetas o dibujos de línea gruesa sobre fondo blanco.",
+    hDrawing:"Dibujo", choose:"Elige una imagen", dropHint:"o arrástrala aquí, o pégala con Ctrl/Cmd+V", examples:"Ejemplos:", fish:"Pez", star:"Estrella", house:"Casa",
+    hDifficulty:"Dificultad", easy:"Fácil", medium:"Medio", hard:"Difícil", numDots:"Cantidad de puntos",
+    hDetection:"Detección", inkThr:"Umbral de tinta", autoThr:"Umbral automático", details:"Conservar detalles interiores (ojos, boca)",
+    hSheet:"Hoja", showName:"Casillas de nombre y fecha", showTitle:"Título", titleText:"Texto del título", showInstr:"Instrucción (\"Une los puntos del 1 al…\")",
+    paper:"Papel", letter:"Carta (8.5 × 11 in)", numSize:"Tamaño de los números", ref:"Mostrar dibujo de referencia", sol:"Ver solución (solo en pantalla)",
+    download:"Descargar PNG (300 dpi)", preview:"vista previa a escala", letterShort:"Carta", sheetPreview:"Vista previa de la hoja",
+    defTitle:"Conecta los puntos", name:"Nombre:", date:"Fecha:", instr:"Une los puntos del 1 al {n} y luego colorea el dibujo.", noDrawing:"Sube un dibujo para generar los puntos.",
+    notImage:"Ese archivo no es una imagen. Prueba con PNG o JPG.", openFail:"No se pudo abrir la imagen.",
+    noShape:"No encontré una figura clara. Sube un dibujo con fondo blanco y contorno cerrado, o ajusta el umbral.",
+    tooSmall:"La figura es demasiado pequeña o no está cerrada. Prueba con un dibujo más grande.",
+    generated:"{n} puntos generados", lineArt:"dibujo de línea detectado", filled:"silueta rellena detectada",
+    saved:"Imagen descargada.", declined:"Descarga cancelada.", dlFail:"No se pudo descargar la imagen en esta vista.", file:"puntos" }
+};
+let LANG = "en";
+try{ LANG = localStorage.getItem("ctd-lang") || ((navigator.language||"").toLowerCase().startsWith("es") ? "es" : "en"); }catch(e){
+  LANG = (navigator.language||"").toLowerCase().startsWith("es") ? "es" : "en"; }
+if(!I18N[LANG]) LANG="en";
+const t = (k, vars) => { let s = (I18N[LANG]||I18N.en)[k] ?? I18N.en[k] ?? k; if(vars) for(const v in vars) s = s.replace("{"+v+"}", vars[v]); return s; };
+
+const S = { img:null, name:"drawing", an:null, pts:null, n:40, autoThr:true, thr:128,
+  details:true, title:"Connect the Dots", paper:"letter", fs:16, ref:true, sol:false,
   showName:true, showTitle:true, showInstr:true };
 
-/* ---------- Carga de imagen ---------- */
-function setImage(img, name){ S.img = img; S.name = name || "dibujo"; analyze(); }
+/* ---------- Image loading ---------- */
+function setImage(img, name){ S.img = img; S.name = name || "drawing"; analyze(); }
 function loadFile(file){
-  if(!file || !file.type.startsWith("image/")){ status("Ese archivo no es una imagen. Prueba con PNG o JPG.", true); return; }
+  if(!file || !file.type.startsWith("image/")){ status(t("notImage"), true); return; }
   const url = URL.createObjectURL(file); const im = new Image();
   im.onload = () => setImage(im, file.name.replace(/\.[^.]+$/,""));
-  im.onerror = () => status("No se pudo abrir la imagen.", true);
+  im.onerror = () => status(t("openFail"), true);
   im.src = url;
 }
 
-/* ---------- Análisis: imagen -> máscara -> contorno ---------- */
+/* ---------- Analysis: image -> mask -> contour ---------- */
 function analyze(){
   const img = S.img; if(!img) return;
   const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
@@ -157,7 +196,7 @@ function analyze(){
   $("thrVal").textContent = S.autoThr ? "auto ("+t+")" : t;
   let ink = new Uint8Array(w*h);
   for(let i=0;i<w*h;i++) ink[i] = g[i] < t ? 1 : 0;
-  // Si el borde de la imagen es mayormente "tinta", el fondo es oscuro: invertir
+  // If the image border is mostly "ink", the background is dark: invert
   let bInk=0,bTot=0;
   for(let X=pad;X<w-pad;X++){ bInk+=ink[pad*w+X]+ink[(h-pad-1)*w+X]; bTot+=2; }
   if(bInk/bTot > .5) for(let i=0;i<w*h;i++) ink[i]^=1;
@@ -165,24 +204,24 @@ function analyze(){
   const closed = erode(dilate(ink,w,h,2),w,h,2);
   const filled = fillHoles(closed,w,h);
   const comp = largest(filled,w,h);
-  if(!comp.area || comp.area < 150){ S.an=null; S.pts=null; status("No encontré una figura clara. Sube un dibujo con fondo blanco y contorno cerrado, o ajusta el umbral.", true); render(); return; }
+  if(!comp.area || comp.area < 150){ S.an=null; S.pts=null; status(t("noShape"), true); render(); return; }
   const shape = comp.mask;
   const raw = trace(shape,w,h);
-  if(raw.length < 20){ S.an=null; S.pts=null; status("La figura es demasiado pequeña o abierta. Prueba con un dibujo más grande.", true); render(); return; }
+  if(raw.length < 20){ S.an=null; S.pts=null; status(t("tooSmall"), true); render(); return; }
   const contour = smooth(resample(raw,420),2);
 
-  // Detalles interiores: tinta original que queda dentro de la silueta (solo en dibujos de línea)
+  // Inner details: original ink inside the silhouette (line drawings only)
   let inkIn=0; for(let i=0;i<w*h;i++) if(shape[i]&&ink[i]) inkIn++;
   const isLine = inkIn/comp.area < .6;
   let detail=null;
   if(isLine){
-    // Grosor promedio del trazo: así se recorta todo el contorno exterior y solo quedan los detalles de adentro
+    // Average stroke width: trims the whole outer outline so only the inner details remain
     const thick = Math.min(20, Math.max(2, inkIn/raw.length));
     const inner = erode(shape,w,h,Math.ceil(thick)+4);
     detail = document.createElement("canvas"); detail.width=w; detail.height=h;
     const dx = detail.getContext("2d"), id = dx.createImageData(w,h);
     let cnt=0; const dm=new Uint8Array(w*h); for(let i=0;i<w*h;i++) dm[i]=inner[i]&&ink[i]?1:0;
-    // Quitar restos pequeños (trozos recortados de líneas pegadas al contorno)
+    // Drop small leftovers (trimmed pieces of lines touching the outline)
     const seen=new Uint8Array(w*h), minA=Math.max(60,comp.area*.0025);
     for(let s=0;s<w*h;s++){ if(!dm[s]||seen[s]) continue; const st=[s], part=[]; seen[s]=1;
       while(st.length){ const i=st.pop(); part.push(i); const x=i%w,y=(i/w)|0;
@@ -231,7 +270,7 @@ function largest(m,w,h){
   const mask=new Uint8Array(w*h); for(let i=0;i<w*h;i++) mask[i]=lab[i]===bestL&&bestL?1:0;
   return {mask,area:best};
 }
-/* Moore-neighbor tracing del contorno exterior, sentido horario */
+/* Moore-neighbor tracing of the outer contour, clockwise */
 function trace(m,w,h){
   const D=[[-1,0],[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1]];
   const at=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&m[y*w+x];
@@ -264,7 +303,7 @@ function smooth(p,passes){
   return a;
 }
 
-/* ---------- Puntos: esquinas obligatorias + reparto uniforme por longitud entre esquinas ---------- */
+/* ---------- Dots: fixed corners + even spacing by arc length between corners ---------- */
 function makeDots(){
   if(!S.an){ render(); return; }
   const P=S.an.contour, M=P.length, N=Math.min(S.n,Math.floor(M/3));
@@ -272,7 +311,7 @@ function makeDots(){
   const L=cum[M], gap=L/N;
   const at=s=>{ s=((s%L)+L)%L; let lo=0,hi=M; while(hi-lo>1){const mid=(lo+hi)>>1; if(cum[mid]<=s) lo=mid; else hi=mid;}
     const a=P[lo], b=P[(lo+1)%M], f=(s-cum[lo])/((cum[lo+1]-cum[lo])||1); return {x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f}; };
-  // Ángulo de giro en cada punto del contorno
+  // Turning angle at each contour point
   const k=7, ang=P.map((p,i)=>{ const a=P[(i-k+M)%M], b=P[(i+k)%M];
     const v1x=p.x-a.x,v1y=p.y-a.y,v2x=b.x-p.x,v2y=b.y-p.y; return Math.abs(Math.atan2(v1x*v2y-v1y*v2x, v1x*v2x+v1y*v2y)); });
   let cand=[]; for(let i=0;i<M;i++){ if(ang[i]<.6) continue; let mx=true;
@@ -283,27 +322,27 @@ function makeDots(){
     if(corners.every(j=>{const d=Math.abs(cum[i]-cum[j]); return Math.min(d,L-d)>=gap*.6;})) corners.push(i); }
   if(!corners.length) corners.push(0);
   corners.sort((a,b)=>a-b);
-  // Repartir los puntos restantes entre los tramos según su longitud (resto mayor)
+  // Split the remaining dots across segments by length (largest remainder)
   const C=corners.length, R=N-C, segs=corners.map((c,j)=>{ const s=cum[c], e=j+1<C?cum[corners[j+1]]:cum[corners[0]]+L; return {s,l:e-s}; });
   const raw=segs.map(sg=>R*sg.l/L); const alloc=raw.map(Math.floor);
   let left=R-alloc.reduce((a,b)=>a+b,0);
   raw.map((v,i)=>[v-Math.floor(v),i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(([,i])=>alloc[i]++);
   let pts=[];
   segs.forEach((sg,j)=>{ pts.push(at(sg.s)); for(let q=1;q<=alloc[j];q++) pts.push(at(sg.s+sg.l*q/(alloc[j]+1))); });
-  // Sentido horario en pantalla (área con signo positiva con y hacia abajo)
+  // Clockwise on screen (positive signed area with y pointing down)
   let A=0; for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length]; A+=a.x*b.y-b.x*a.y;}
   if(A<0) pts.reverse();
-  // El punto 1 arriba (el más alto; en empate, el más centrado)
+  // Dot 1 at the top (highest; on ties, the most centered)
   let top=0; const midx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
   pts.forEach((p,i)=>{ const q=pts[top]; if(p.y<q.y-1.5 || (Math.abs(p.y-q.y)<=1.5 && Math.abs(p.x-midx)<Math.abs(q.x-midx))) top=i; });
   S.pts=pts.slice(top).concat(pts.slice(0,top));
-  status(S.pts.length+" puntos generados"+(S.an.isLine?" · dibujo de línea detectado":" · silueta rellena detectada")+".");
+  status(t("generated",{n:S.pts.length})+" · "+t(S.an.isLine?"lineArt":"filled")+".");
   render();
 }
 
-/* ---------- Composición de la hoja (unidades en pulgadas) ---------- */
+/* ---------- Sheet layout (units in inches) ---------- */
 const meas=document.createElement("canvas").getContext("2d");
-/* Encabezado opcional: cada parte ocupa espacio solo si está activada */
+/* Optional header: each part takes space only when enabled */
 function header(){
   const m=.6, thumb=!!(S.ref&&S.img), tb=1.3; let y=.45;
   const H={m,thumb,tb};
@@ -359,27 +398,27 @@ function renderPage(ctx,u,showSol){
   const L=layout(), {P,m}=L, W=P.w*u, H=P.h*u, ink="#1d1d1f";
   ctx.save(); ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle=ink; ctx.fillStyle=ink; ctx.lineWidth=.018*u; ctx.lineJoin="round"; ctx.lineCap="round";
-  // Encabezado: Nombre y Fecha
+  // Header: Name and Date
   const box=(x,y,w,h,lab)=>{ ctx.beginPath(); ctx.roundRect(x*u,y*u,w*u,h*u,.09*u); ctx.stroke();
     ctx.font=`600 ${.19*u}px Fredoka, "Trebuchet MS", sans-serif`; ctx.textBaseline="middle"; ctx.textAlign="left";
     ctx.fillText(lab,(x+.16)*u,(y+h/2)*u); const lw=ctx.measureText(lab).width;
     ctx.beginPath(); ctx.moveTo((x+.16)*u+lw+.1*u,(y+h*.68)*u); ctx.lineTo((x+w-.18)*u,(y+h*.68)*u); ctx.lineWidth=.012*u; ctx.stroke(); ctx.lineWidth=.018*u; };
   const Hd=L.Hd;
-  if(Hd.nameY!==undefined){ box(m,Hd.nameY,4.3,.5,"Nombre:"); box(P.w-m-2.7,Hd.nameY,2.7,.5,"Fecha:"); }
-  // Título e instrucción
+  if(Hd.nameY!==undefined){ box(m,Hd.nameY,4.3,.5,t("name")); box(P.w-m-2.7,Hd.nameY,2.7,.5,t("date")); }
+  // Title and instructions
   const tb=Hd.tb, tcx=L.thumb ? (m+(P.w-m-tb-.25))/2 : P.w/2;
   ctx.textAlign="center"; ctx.textBaseline="alphabetic";
   if(Hd.titleY!==undefined){ ctx.font=`600 ${.44*u}px Fredoka, "Trebuchet MS", sans-serif`; ctx.fillText(S.title,tcx*u,Hd.titleY*u); }
   const N=L.dots.length;
   if(Hd.instrY!==undefined){ ctx.font=`400 ${.165*u}px "Atkinson Hyperlegible", system-ui, sans-serif`;
-    ctx.fillText(N?`Une los puntos del 1 al ${N} y luego colorea el dibujo.`:"Sube un dibujo para generar los puntos.",tcx*u,Hd.instrY*u); }
-  // Referencia
+    ctx.fillText(N?t("instr",{n:N}):t("noDrawing"),tcx*u,Hd.instrY*u); }
+  // Reference
   if(L.thumb){ const x=P.w-m-tb, y=Hd.thumbY;
     ctx.beginPath(); ctx.rect(x*u,y*u,tb*u,tb*u); ctx.lineWidth=.012*u; ctx.stroke();
     const iw=S.img.naturalWidth||S.img.width, ih=S.img.naturalHeight||S.img.height, s=Math.min((tb-.16)/iw,(tb-.16)/ih);
     ctx.drawImage(S.img,(x+(tb-iw*s)/2)*u,(y+(tb-ih*s)/2)*u,iw*s*u,ih*s*u); }
   if(N){
-    // Detalles interiores
+    // Inner details
     if(S.details&&S.an.detail){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
       ctx.drawImage(S.an.detail,L.ox*u,L.oy*u,S.an.w*L.k*u,S.an.h*L.k*u); }
     if(showSol){ ctx.beginPath(); L.dots.forEach((d,i)=>i?ctx.lineTo(d.x*u,d.y*u):ctx.moveTo(d.x*u,d.y*u)); ctx.closePath();
@@ -392,14 +431,14 @@ function renderPage(ctx,u,showSol){
   ctx.restore();
 }
 
-/* ---------- Vista previa y descarga ---------- */
+/* ---------- Preview and download ---------- */
 const cv=$("page");
 function render(){
   const P=PAPER[S.paper], u=96, dpr=Math.min(2,window.devicePixelRatio||1);
   cv.width=Math.round(P.w*u*dpr); cv.height=Math.round(P.h*u*dpr);
   const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
   renderPage(ctx,u,S.sol);
-  $("meta").textContent=(S.paper==="letter"?"Carta":"A4")+" · vista previa a escala";
+  $("meta").textContent=(S.paper==="letter"?t("letterShort"):"A4")+" · "+t("preview");
 }
 function status(msg,err){ const s=$("status"); s.textContent=msg; s.classList.toggle("err",!!err); }
 
@@ -410,11 +449,11 @@ $("dl").addEventListener("click",async()=>{
   const P=PAPER[S.paper], u=300, c=document.createElement("canvas");
   c.width=Math.round(P.w*u); c.height=Math.round(P.h*u); renderPage(c.getContext("2d"),u,false);
   const blob=await new Promise(r=>c.toBlob(r,"image/png"));
-  try{ await downloads.save({filename:`puntos-${S.name}.png`,data:blob}); status("Imagen descargada."); }
-  catch(e){ if(e&&e.code==="declined") status("Descarga cancelada."); else status("No se pudo descargar la imagen en esta vista.",true); }
+  try{ await downloads.save({filename:`${t("file")}-${S.name}.png`,data:blob}); status(t("saved")); }
+  catch(e){ if(e&&e.code==="declined") status(t("declined")); else status(t("dlFail"),true); }
 });
 
-/* ---------- Ejemplos dibujados por código ---------- */
+/* ---------- Examples drawn in code ---------- */
 function sample(kind){
   const c=document.createElement("canvas"); c.width=560; c.height=420; const x=c.getContext("2d");
   x.fillStyle="#fff"; x.fillRect(0,0,560,420); x.strokeStyle="#111"; x.fillStyle="#111"; x.lineWidth=8; x.lineJoin="round"; x.lineCap="round";
@@ -430,10 +469,10 @@ function sample(kind){
   } else {
     x.beginPath(); x.moveTo(110,400); x.lineTo(110,200); x.lineTo(80,200); x.lineTo(280,40); x.lineTo(370,112); x.lineTo(370,60); x.lineTo(410,60); x.lineTo(410,144); x.lineTo(480,200); x.lineTo(450,200); x.lineTo(450,400); x.closePath(); x.fill();
   }
-  setImage(c,{fish:"pez",star:"estrella",house:"casa"}[kind]);
+  setImage(c,kind);
 }
 
-/* ---------- Eventos ---------- */
+/* ---------- Events ---------- */
 let tN; const later=(f)=>{clearTimeout(tN); tN=setTimeout(f,120);};
 $("file").addEventListener("change",e=>loadFile(e.target.files[0]));
 const drop=$("drop");
@@ -449,7 +488,7 @@ $("n").addEventListener("input",e=>{S.n=+e.target.value; $("nVal").textContent=S
 $("thr").addEventListener("input",e=>{S.thr=+e.target.value; S.autoThr=false; $("autoThr").checked=false; $("thrVal").textContent=S.thr; later(analyze);});
 $("autoThr").addEventListener("change",e=>{S.autoThr=e.target.checked; analyze();});
 $("details").addEventListener("change",e=>{S.details=e.target.checked; render();});
-$("title").addEventListener("input",e=>{S.title=e.target.value; later(render);});
+$("title").addEventListener("input",e=>{S.title=e.target.value; titleEdited=true; later(render);});
 $("paper").addEventListener("change",e=>{S.paper=e.target.value; render();});
 $("fs").addEventListener("input",e=>{S.fs=+e.target.value; $("fsVal").textContent=S.fs; later(render);});
 $("ref").addEventListener("change",e=>{S.ref=e.target.checked; render();});
@@ -458,7 +497,22 @@ $("showTitle").addEventListener("change",e=>{S.showTitle=e.target.checked; $("ti
 $("showInstr").addEventListener("change",e=>{S.showInstr=e.target.checked; render();});
 $("sol").addEventListener("change",e=>{S.sol=e.target.checked; render();});
 
+/* Apply the current language to the interface; the default title follows the language until the user edits it */
+let titleEdited = false;
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $("page").setAttribute("aria-label", t("sheetPreview"));
+  document.querySelectorAll(".lang button").forEach(b => { b.classList.toggle("on", b.dataset.lang===LANG); b.setAttribute("aria-pressed", b.dataset.lang===LANG); });
+  if(!titleEdited){ S.title = t("defTitle"); $("title").value = S.title; }
+  if(S.pts) status(t("generated",{n:S.pts.length})+" · "+t(S.an.isLine?"lineArt":"filled")+".");
+  render();
+}
+document.querySelector(".lang").addEventListener("click", e => { const b=e.target.closest("button"); if(!b) return;
+  LANG = b.dataset.lang; try{ localStorage.setItem("ctd-lang", LANG); }catch(err){} applyLang(); });
+
 syncPresets();
+applyLang();
 Promise.race([Promise.all([document.fonts.load('600 40px Fredoka'),document.fonts.load('500 40px Fredoka'),document.fonts.load('400 16px "Atkinson Hyperlegible"')]),new Promise(r=>setTimeout(r,2500))])
   .catch(()=>{}).finally(()=>sample("fish"));
 </script>

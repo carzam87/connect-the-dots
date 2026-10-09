@@ -1,32 +1,40 @@
-# Taller de Puntos
+# Connect the Dots Maker
 
-Herramienta web que convierte un dibujo en una hoja de "conecta los puntos" lista para imprimir, pensada para armar álbumes de actividades para niños.
+Turn any drawing into a printable connect-the-dots worksheet for kids' activity books.
 
-Es un solo archivo (`index.html`), sin backend ni build. Ábrelo en el navegador.
+The interface is available in English and Spanish, and the printed sheet follows the selected language.
 
-## Qué hace
+## Usage
 
-- Sube una imagen (archivo, arrastrar y soltar, o pegar), o usa los ejemplos incluidos (pez, estrella, casa).
-- Detecta la silueta, traza el contorno exterior y lo convierte en puntos numerados.
-- Las esquinas llevan punto fijo y el resto se reparte a distancia uniforme.
-- Conserva los detalles interiores (ojos, boca) como líneas ya dibujadas en dibujos de línea.
-- Dificultad ajustable (10 a 120 puntos), tamaño de números, papel Carta o A4.
-- Encabezado opcional: nombre y fecha, título, instrucción y dibujo de referencia.
-- Vista de solución en pantalla y descarga en PNG a 300 dpi.
+Open `index.html` in a browser. No install or build step is needed for now.
 
-## Cómo funciona
+## Features
 
-1. Escala de grises y binarización con umbral de Otsu (o manual), con inversión automática si el fondo es oscuro.
-2. Cierre morfológico, relleno de huecos y selección del componente más grande.
-3. Trazado del contorno con Moore-neighbor, remuestreo por longitud de arco y suavizado.
-4. Detección de esquinas por ángulo de giro y reparto proporcional del resto de puntos entre esquinas.
-5. Colocación de números hacia afuera de la figura evitando choques con otros números, puntos y líneas.
+- Upload an image (file picker, drag and drop, or paste), or start from the built-in examples (fish, star, house).
+- Detects the silhouette, traces its outer contour and turns it into numbered dots.
+- Corners always get a dot; the remaining dots are spaced evenly along the outline.
+- Keeps inner details (eyes, mouth) as pre-drawn lines on line drawings.
+- Adjustable difficulty (10 to 120 dots), number size, and Letter or A4 paper.
+- Optional header parts: name and date boxes, title, instructions, and reference drawing.
+- On-screen solution preview and PNG export at 300 dpi.
 
-## Funciona mejor con
+## How it works
 
-Siluetas o dibujos de línea gruesa sobre fondo blanco, con el contorno cerrado.
+1. Grayscale conversion and binarization with Otsu's threshold (or a manual one), inverting automatically on dark backgrounds.
+2. Morphological closing, hole filling, and selection of the largest connected component.
+3. Moore-neighbor contour tracing, arc-length resampling, and smoothing.
+4. Corner detection by turning angle, then the remaining dots are split between corners in proportion to segment length.
+5. Labels are placed outside the shape, avoiding overlaps with other labels, dots, and the outline.
 
-## Pendiente
+## Works best with
 
-- Álbum de varias páginas con exportación a PDF.
-- Portada del álbum.
+Silhouettes or bold line drawings on a white background, with a closed outline.
+
+## Roadmap
+
+- Multi-page album with PDF export.
+- Album cover page.
+
+## License
+
+MIT
