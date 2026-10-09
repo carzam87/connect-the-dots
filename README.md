@@ -4,7 +4,15 @@ Turn any drawing into a printable connect-the-dots worksheet for kids' activity 
 
 The interface is available in English and Spanish, and the printed sheet follows the selected language.
 
-![Connect the Dots Maker turning a fish drawing into a 40-dot worksheet](docs/screenshot.png)
+## Example
+
+Upload a drawing like this one:
+
+<img src="docs/example-input.png" alt="Puppy line drawing used as input" width="320">
+
+and the app turns it into a printable worksheet:
+
+![Connect the Dots Maker turning the puppy drawing into a 40-dot worksheet](docs/example-output.png)
 
 ## Usage
 
