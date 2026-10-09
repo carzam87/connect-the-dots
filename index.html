@@ -22,8 +22,9 @@ header h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,34
 header h1 .dot{display:inline-block;width:.32em;height:.32em;border-radius:50%;background:var(--sun);margin-left:.12em;vertical-align:.1em;box-shadow:0 0 0 2px var(--fg)}
 header p{margin:4px 0 0;color:var(--muted);max-width:62ch}
 .toprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.lang{display:flex;gap:6px}
-.lang button{padding:5px 12px;font-size:13px}
+.topctl{display:flex;gap:10px;flex-wrap:wrap}
+.seg{display:flex;gap:6px}
+.seg button{padding:5px 12px;font-size:13px}
 .grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:860px){.grid{grid-template-columns:1fr}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:18px}
@@ -59,7 +60,8 @@ input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--lin
 <div class="wrap">
   <header>
     <div class="toprow"><h1><span data-i18n="app">Connect the Dots Maker</span><span class="dot"></span></h1>
-    <div class="lang" role="group" aria-label="Language"><button data-lang="en">English</button><button data-lang="es">Español</button></div></div>
+    <div class="topctl"><div class="seg theme" role="group" aria-label="Theme"><button data-theme-set="auto" data-i18n="themeAuto">Auto</button><button data-theme-set="light" data-i18n="themeLight">Light</button><button data-theme-set="dark" data-i18n="themeDark">Dark</button></div>
+    <div class="seg lang" role="group" aria-label="Language"><button data-lang="en">English</button><button data-lang="es">Español</button></div></div></div>
     <p data-i18n="intro">Upload a drawing and turn it into a printable connect-the-dots worksheet. Works best with silhouettes or bold line drawings on a white background.</p>
   </header>
 
@@ -138,7 +140,7 @@ const I18N = {
     hDetection:"Detection", inkThr:"Ink threshold", autoThr:"Automatic threshold", details:"Keep inner details (eyes, mouth)",
     hSheet:"Sheet", showName:"Name and date boxes", showTitle:"Title", titleText:"Title text", showInstr:"Instructions (\"Connect the dots from 1 to…\")",
     paper:"Paper", letter:"Letter (8.5 × 11 in)", numSize:"Number size", ref:"Show reference drawing", sol:"Show solution (screen only)",
-    download:"Download PNG (300 dpi)", preview:"preview to scale", letterShort:"Letter", sheetPreview:"Sheet preview",
+    download:"Download PNG (300 dpi)", themeAuto:"Auto", themeLight:"Light", themeDark:"Dark", preview:"preview to scale", letterShort:"Letter", sheetPreview:"Sheet preview",
     defTitle:"Connect the Dots", name:"Name:", date:"Date:", instr:"Connect the dots from 1 to {n}, then color the picture.", noDrawing:"Upload a drawing to generate the dots.",
     notImage:"That file is not an image. Try a PNG or JPG.", openFail:"Could not open the image.",
     noShape:"No clear shape found. Upload a drawing with a white background and a closed outline, or adjust the threshold.",
@@ -151,7 +153,7 @@ const I18N = {
     hDetection:"Detección", inkThr:"Umbral de tinta", autoThr:"Umbral automático", details:"Conservar detalles interiores (ojos, boca)",
     hSheet:"Hoja", showName:"Casillas de nombre y fecha", showTitle:"Título", titleText:"Texto del título", showInstr:"Instrucción (\"Une los puntos del 1 al…\")",
     paper:"Papel", letter:"Carta (8.5 × 11 in)", numSize:"Tamaño de los números", ref:"Mostrar dibujo de referencia", sol:"Ver solución (solo en pantalla)",
-    download:"Descargar PNG (300 dpi)", preview:"vista previa a escala", letterShort:"Carta", sheetPreview:"Vista previa de la hoja",
+    download:"Descargar PNG (300 dpi)", themeAuto:"Auto", themeLight:"Claro", themeDark:"Oscuro", preview:"vista previa a escala", letterShort:"Carta", sheetPreview:"Vista previa de la hoja",
     defTitle:"Conecta los puntos", name:"Nombre:", date:"Fecha:", instr:"Une los puntos del 1 al {n} y luego colorea el dibujo.", noDrawing:"Sube un dibujo para generar los puntos.",
     notImage:"Ese archivo no es una imagen. Prueba con PNG o JPG.", openFail:"No se pudo abrir la imagen.",
     noShape:"No encontré una figura clara. Sube un dibujo con fondo blanco y contorno cerrado, o ajusta el umbral.",
@@ -511,7 +513,21 @@ function applyLang(){
 document.querySelector(".lang").addEventListener("click", e => { const b=e.target.closest("button"); if(!b) return;
   LANG = b.dataset.lang; try{ localStorage.setItem("ctd-lang", LANG); }catch(err){} applyLang(); });
 
+/* Theme switch: auto follows the system (or the host page), light and dark force a palette */
+const hostTheme = document.documentElement.getAttribute("data-theme");
+let THEME = "auto";
+try{ THEME = localStorage.getItem("ctd-theme") || "auto"; }catch(e){}
+function applyTheme(){
+  const root = document.documentElement;
+  if(THEME === "auto"){ if(hostTheme) root.setAttribute("data-theme", hostTheme); else root.removeAttribute("data-theme"); }
+  else root.setAttribute("data-theme", THEME);
+  document.querySelectorAll(".theme button").forEach(b => { const on = b.dataset.themeSet===THEME; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+}
+document.querySelector(".theme").addEventListener("click", e => { const b=e.target.closest("button"); if(!b) return;
+  THEME = b.dataset.themeSet; try{ localStorage.setItem("ctd-theme", THEME); }catch(err){} applyTheme(); });
+
 syncPresets();
+applyTheme();
 applyLang();
 Promise.race([Promise.all([document.fonts.load('600 40px Fredoka'),document.fonts.load('500 40px Fredoka'),document.fonts.load('400 16px "Atkinson Hyperlegible"')]),new Promise(r=>setTimeout(r,2500))])
   .catch(()=>{}).finally(()=>sample("fish"));

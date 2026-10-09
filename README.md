@@ -19,6 +19,7 @@ Open `index.html` in a browser. No install or build step is needed for now.
 - Adjustable difficulty (10 to 120 dots), number size, and Letter or A4 paper.
 - Optional header parts: name and date boxes, title, instructions, and reference drawing.
 - On-screen solution preview and PNG export at 300 dpi.
+- Light, dark, or automatic theme for the interface.
 
 ## How it works
 
